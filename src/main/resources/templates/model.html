@@ -1,0 +1,113 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container">
+    <form method="POST" enctype="multipart/form-data" action="/model">
+        <h1 th:text="${title}"></h1>
+        <div id="accordion">
+            <div class="card">
+                <div class="card-header" id="heading">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapse"
+                                aria-controls="#collapse"
+                                aria-expanded="true">Upload new .bpmn model here
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapse" class="collapse" aria-labelledby="heading" data-parent="#accordion">
+                    <div class="card-body">
+                        <input name="modelId" th:value="${modelId}" hidden="hidden"/>
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label for="file">File to Upload</label>
+                                <input type="file" id="file" name="file" accept=".bpmn" required="required"/>
+                                <small class="form-text text-muted"></small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                Or try to <a th:href="${'/model/try/' + modelId}">upload</a> example (download as <a
+                                    th:href="@{/examples/user_login_c.bpmn}">bpmn</a> file or <a
+                                    th:href="@{/img/user_login.png}" target="_blank">png</a>)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label for="type">Type of Process</label>
+                                <select class="custom-select" id="type" name="type">
+                                    <option th:each="pt : ${T(ee.ut.gdpr.proto.domain.enums.ProcessType).values()}"
+                                            th:value="${pt}"
+                                            th:text="${pt.value}"></option>
+                                </select>
+                                <small class="form-text text-muted">Type of process helps to determine whether this
+                                    process represents mechanism to fulfill rights of data subject or process where
+                                    personal data is being processed.
+                                </small>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="order">Order of Process</label>
+                                <input type="number" name="order" id="order" class="form-control"
+                                       placeholder="Order of Process"
+                                       required="required"/>
+                                <small class="form-text text-muted">Order of process in information system (e.g. user
+                                    login/registration process order should be smaller than orders of processes that
+                                    require user authentication)
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <input class="btn btn-success" type="submit" value="Submit"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="card m">
+        <h5 class="card-header">Uploaded processes</h5>
+        <div class="card-body" th:if="${processes == null or processes.size() &lt; 1}">
+            <p>There is no business processes uploaded yet. You can upload business processes using form above
+                (Upload new .bpmn model here).</p>
+        </div>
+        <div class="card-body" th:if="${processes != null and processes.size() &gt; 0}">
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Filename/Process name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Order</th>
+                    <th scope="col">Options</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p, s : *{processes}">
+                    <th scope="row" th:text="${s.index + 1}"></th>
+                    <td th:text="${p.name}"></td>
+                    <td th:text="${p.type.value}"></td>
+                    <td th:text="${p.order}"></td>
+                    <td>
+                        <a class="btn btn-info btn-sm" role="button" title="Determine actors"
+                           th:href="${'/steps/step0/' + p.id}">Step 0</a>
+                        <a class="btn btn-info btn-sm" role="button" title="Processing purpose"
+                           th:href="${'/steps/step1/' + p.id}">Step 1</a>
+                        <a class="btn btn-info btn-sm" role="button" title="Personal Data Category"
+                           th:href="${'/steps/step2/' + p.id}">Step 2</a>
+                        <a class="btn btn-info btn-sm" role="button" title="Consent attributes"
+                           th:href="${'/steps/step3/' + p.id}">Step 3</a>
+                        <a class="btn btn-success btn-sm" role="button" title="Show final report"
+                           th:href="${'/steps/final/' + p.id}">Final</a>
+                        <a class="btn btn-danger btn-sm" role="button" title="Remove this process"
+                           th:href="${'/process/remove/' + p.id}">Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-sm-12 footerbtns">
+        <a class="btn btn-warning" role="button" th:href="@{'/'}"><span>Back To Models</span></a>
+    </div>
+</div>
+
+</body>
+</html>

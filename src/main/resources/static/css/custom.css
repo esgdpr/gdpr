@@ -1,0 +1,19 @@
+.container {
+    margin-top: 2%;
+}
+
+.footerbtns {
+    margin-top: 2%;
+}
+
+.m {
+    margin-top: 10px;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.pre {
+    white-space: pre-wrap !important;
+}

@@ -1,0 +1,116 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container">
+    <form action="#" th:action="@{/steps/step2}" th:object="${form}" method="post">
+        <div class="card">
+            <h5 class="card-header">Step 2</h5>
+            <div class="card-body">
+                <h4 class="card-title">Following Personal Data Object were identified</h4>
+                <p class="card-text">Please help me to determine the category of each Personal Data Instance</p>
+                <p>
+                    <a class="btn btn-sm btn-outline-info" data-toggle="collapse" href="#collapseArt" role="button"
+                       aria-expanded="false" aria-controls="collapseArt">
+                        Show relevant GDPR articles
+                    </a>
+                </p>
+                <div class="border p-3 collapse" id="collapseArt">
+                    <small class="text-muted">
+                        <h6 class="text-center"><a href="https://gdpr-info.eu/art-4-gdpr/" target="_blank">Art. 4
+                            GDPR</a></h6>
+                        <h6 class="text-center">Definitions</h6>
+                        <ol>
+                            <li>
+                                <span class="text-danger">‘personal data’ means any information relating to an
+                                    identified or identifiable natural person (‘data subject’);</span> an identifiable
+                                natural person is one who can be identified,
+                                directly or indirectly, in particular by reference to an identifier such as a name, an
+                                identification number, location data, an online identifier or to one or more factors
+                                specific to the <span class="text-danger">physical, physiological, genetic, mental, economic,
+                                cultural or social identity of that natural person;</span>
+                            </li>
+                        </ol>
+                        <ol start="13">
+                            <li>
+                                ‘genetic data’ means personal data relating to the inherited or acquired genetic
+                                characteristics of a natural person which give unique information about the physiology
+                                or the health of that natural person and which result, in particular, from an analysis
+                                of a biological sample from the natural person in question;
+                            </li>
+                            <li>
+                                ‘biometric data’ means personal data resulting from specific technical processing
+                                relating to the physical, physiological or behavioural characteristics of a natural
+                                person, which allow or confirm the unique identification of that natural person, such
+                                as facial images or dactyloscopic data;
+                            </li>
+                            <li>
+                                ‘data concerning health’ means personal data related to the physical or mental health
+                                of a natural person, including the provision of health care services, which reveal
+                                information about his or her health status;
+                            </li>
+                        </ol>
+                        <br/>
+                        <h6 class="text-center"><a href="https://gdpr-info.eu/art-9-gdpr/" target="_blank">Art. 9
+                            GDPR</a></h6>
+                        <h6 class="text-center">Processing of special categories of personal data</h6>
+                        <ol>
+                            <li>
+                                <span class="text-danger">Processing of personal data revealing racial or ethnic origin, political opinions,
+                                religious or philosophical beliefs, or trade union membership, and the processing of
+                                genetic data, biometric data</span> for the purpose of uniquely identifying a natural
+                                person,
+                                data concerning health or data concerning a natural person’s sex life or sexual
+                                orientation shall be prohibited. [...]
+                            </li>
+                        </ol>
+                        <br/>
+                        <h6 class="text-center"><a href="https://gdpr-info.eu/art-10-gdpr/" target="_blank">Art. 10
+                            GDPR</a></h6>
+                        <h6 class="text-center">Processing of personal data relating to criminal convictions and
+                            offences</h6>
+                        <ol>
+                            <li>
+                                <span class="text-danger">Processing of personal data relating to criminal
+                                    convictions and offences or related
+                                security measures</span> based on Article 6(1) shall be carried out <span
+                                    class="text-danger">only under the control of
+                                official authority</span> or when the processing is authorised by Union or Member State
+                                law
+                                providing for appropriate safeguards for the rights and freedoms of data subjects. 2Any
+                                comprehensive register of criminal convictions shall be kept only under the control of
+                                official authority.
+                            </li>
+                        </ol>
+                        <br/>
+                    </small>
+                </div>
+                <input th:field="*{processId}" hidden="hidden"/>
+                <div class="row p-0">
+                    <div class="form-group row col-sm-6" th:each="data, s : *{data}">
+                        <input th:field="*{data[__${s.index}__].id}" hidden="hidden"/>
+                        <label class="col-sm-6 col-form-label" th:attr="for='dt' + ${s.index}"
+                               th:text="${data.label}"></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" th:id="'dt' + ${s.index}"
+                                    th:field="*{data[__${s.index}__].category}">
+                                <option th:each="pt : ${T(ee.ut.gdpr.proto.domain.enums.DataCategory).values()}"
+                                        th:value="${pt}"
+                                        th:text="${pt}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 footerbtns">
+            <a class="btn btn-warning" role="button" th:href="@{'/'}"><span>Back to Models</span></a>
+            <a class="btn btn-primary" role="button"
+               th:href="${'/model/' + form.modelId}"><span>Back to current model</span></a>
+            <button class="btn btn-success" role="button" value="submit" type="submit">Save and go to next step</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

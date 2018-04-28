@@ -1,0 +1,19 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container-fluid">
+    <img th:src="*{'data:image/png;base64,'+pic}" alt=""/>
+    <p>
+        <a class="btn btn-sm btn-primary" data-toggle="collapse" href="#collapseCode" role="button"
+           aria-expanded="false" aria-controls="collapseCode">
+            Show PlantUML generated code
+        </a>
+    </p>
+    <div class="border p-3 collapse" id="collapseCode">
+        <small class="text-muted">
+            <pre th:text="${code}"></pre>
+        </small>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container">
+    <form action="#" th:action="@{/steps/step0}" th:object="${form}" method="post">
+        <div class="card">
+            <h5 class="card-header">Step 0</h5>
+            <div class="card-body">
+                <h4 class="card-title">Following lanes were detected in uploaded process</h4>
+                <p class="card-text">We tried to guess which lane corresponds to Filing System, Recipient and Data Subject.
+                    Please correct it, if its wrong (There is possibility that Data Subject and Recipient are not
+                    represented in this particular process, however Filing System should be definitely presented in process).</p>
+                <p>
+                    <a class="btn btn-sm btn-outline-info" data-toggle="collapse" href="#collapseArt" role="button"
+                       aria-expanded="false" aria-controls="collapseArt">
+                        Show relevant GDPR articles
+                    </a>
+                </p>
+                <div class="border p-3 collapse" id="collapseArt">
+                    <small class="text-muted">
+                        <h6 class="text-center"><a href="https://gdpr-info.eu/art-4-gdpr/" target="_blank">Art. 4 GDPR</a></h6>
+                        <h6 class="text-center">Definitions</h6>
+                        <ol>
+                            <li>
+                                <span class="text-danger">‘personal data’ means any information relating to an
+                                    identified or identifiable natural person (‘data subject’);</span> an identifiable
+                                natural person is one who can be identified,
+                                directly or indirectly, in particular by reference to an identifier such as a name, an
+                                identification number, location data, an online identifier or to one or more factors
+                                specific to the physical, physiological, genetic, mental, economic, cultural or social
+                                identity of that natural person;
+                            </li>
+                        </ol>
+                        <ol start="6">
+                            <li><span class="text-danger">‘filing system’ means any structured set of personal data which are accessible
+                                according to specific criteria, whether centralised, decentralised or dispersed on a
+                                functional or geographical basis;</span>
+                            </li>
+                        </ol>
+                        <ol start="9">
+                            <li><span class="text-danger">‘recipient’ means a natural or legal person, public authority, agency or another body,
+                                to which the personal data are disclosed</span>, whether a third party or not. However,
+                                public authorities which may receive personal data in the framework of a particular
+                                inquiry in accordance with Union or Member State law shall not be regarded as
+                                recipients; the processing of those data by those public authorities shall be in
+                                compliance with the applicable data protection rules according to the purposes of the
+                                processing;
+                            </li>
+                        </ol>
+                        <br/>
+                    </small>
+                </div>
+                <input th:field="*{processId}" hidden="hidden" />
+                <input th:field="*{modelId}" hidden="hidden" />
+                <div class="row p-0 m">
+                    <div class="form-group row col-sm-6" th:each="lane, s : *{lanes}">
+                        <input th:field="*{lanes[__${s.index}__].id}" hidden="hidden" />
+                        <label class="col-sm-6 col-form-label" th:attr="for='p' + ${s.index}" th:text="${lane.name}"></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" th:id="'p' + ${s.index}" th:field="*{lanes[__${s.index}__].type}">
+                                <option th:each="pt : ${T(ee.ut.gdpr.proto.domain.enums.LaneType).values()}"
+                                        th:value="${pt}"
+                                        th:text="${pt.value}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12 footerbtns">
+            <a class="btn btn-warning" role="button" th:href="@{'/'}"><span>Back to Models</span></a>
+            <a class="btn btn-primary" role="button" th:href="${'/model/' + form.modelId}"><span>Back to current model</span></a>
+            <button class="btn btn-success" role="button" value="submit" type="submit">Save and go to next step</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

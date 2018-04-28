@@ -1,0 +1,59 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container">
+    <div class="card">
+        <h5 class="card-header">Results</h5>
+        <div class="card-body">
+            <h4 class="card-title"></h4>
+            <p class="card-text"></p>
+            <input th:field="*{processId}" hidden="hidden" />
+            <div id="accordion">
+                <div th:each="task, s : *{tasks}" class="card m">
+                    <div class="card-header" th:id="'heading' + ${s.index}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" th:text="${task.name}"
+                                    th:attr="data-target='#collapse' + ${s.index}, aria-controls='#collapse' + ${s.index}"
+                                    aria-expanded="true">
+                            </button>
+                        </h5>
+                    </div>
+                    <div th:id="'collapse' + ${s.index}" class="collapse" th:classappend="${s.index == 0} ? show : hide"
+                         th:attr="aria-labelledby='heading' + ${s.index}" data-parent="#accordion">
+                        <div class="card-body">
+                            <div th:if="${task.errors != null and task.errors.size() &gt; 0}">
+                                <h5>Possible Problems:</h5>
+                                <ul>
+                                    <li th:each="er : ${task.errors}">
+                                        <span th:text="${er.finalError}"></span>
+                                        <ul><li><pre class="pre" th:text="${er.suggestion}"></pre></li></ul>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <h5>Generate as-is compliancy model with:</h5>
+                            <div class="row" th:each="da, i : ${task.pd}">
+                                <div class="col-12">
+                                    <span th:text="${da.label}"></span>
+                                    <a th:if="${da.dataInId}" th:href="${'/gen/' + task.id + '/' + da.dataInId}"
+                                       class="badge badge-success" target="_blank">IN</a>
+                                    <a th:if="${da.dataOutId}" th:href="${'/gen/' + task.id + '/' + da.dataOutId}"
+                                       class="badge badge-warning" target="_blank">OUT</a>
+                                </div>
+
+                                <br/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12 footerbtns">
+        <a class="btn btn-warning" role="button" th:href="@{'/'}"><span>Back to Models</span></a>
+        <a class="btn btn-primary" role="button" th:href="${'/model/' + modelId}"><span>Back to current model</span></a>
+    </div>
+</div>
+</body>
+</html>

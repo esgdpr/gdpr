@@ -1,0 +1,235 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div class="container">
+    <form method="POST" th:object="${wrapper}" action="/" >
+        <div id="helpAcc">
+            <div class="card">
+                <div class="card-header" id="headingHelp">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse"
+                                data-target="#helpCollapse" aria-controls="#helpCollapse"
+                                aria-expanded="true">Information and Help
+                        </button>
+                    </h5>
+                </div>
+                <div id="helpCollapse" class="collapse" aria-labelledby="heading" data-parent="#helpAcc">
+                    <div class="card-body">
+                        <h2>Prototype Tool to analyse Information System (IS) compliancy towards GDPR</h2>
+                        <p>
+                            This tool was developed as proof of concept for University of Tartu Master's Thesis
+                            "Analysis of GDPR Compliance in Information Systems" by Eduard Sing and supervised
+                            by Raimundas Matulevičius (2018).
+                        </p>
+                        <h4>What is GDPR? GDPR problems.</h4>
+                        <p>GDPR (Genetal Data Protection Regulation) is new regulation </p>
+                        <p>In the April 2016, the European Parliament and Council approved the new personal data
+                            protection regulation - GDPR (General Data Protection Regulation), which will take effect
+                            in the end of the May 2018.The GDPR is addressing common problems of the protection and the
+                            usage of the personal data of EU citizens.</p>
+                        <p>According to the new regulation, all organizations that use personal data of EU citizens in
+                            their day-to-day activities - have to reevaluate their business processes and information
+                            systems to comply with the new rules and constraints. The punishment for misuse of personal
+                            data can be very costly to company - up to 20 million euros or 4% of the annual global
+                            turnover.
+                            Nevertheless, there is no technical guidance or clear approach that would help to evaluate
+                            business processes of information system to comply with GDPR.</p>
+                        <p> This thesis will address mentioned issue by researching the GDPR legislation text and
+                            proposing actual methodology for analysing business processes of information systems and
+                            aligning them with the GDPR. The proposed methodology will also help to map the flow of the
+                            personal data between different parties and highlight the problematic places in the
+                            business processes suggesting measures to reduce the misuse of personal data.</p>
+                        <p class="text-right"><small class="text-muted">Taken from abstract</small></p>
+                        <h4>Method to analyse Information System compliancy towards GDPR</h4>
+                        <p>
+                            IS as-is compliancy model is compared against proposed
+                            <a th:href="@{/img/model.jpg}" target="_blank">GDPR meta-model</a> (defined in UML class
+                            diagram notation [2.3 GDPR meta-model]). The information for as-is compliancy model is
+                            collected from business processes (defined with BPMN 2.0 notation) using extraction
+                            rules (3.3 Extraction Rules).
+                        </p>
+                        <div class="text-center">
+                            <figure>
+                                <img th:src="@{/img/Method.png}" alt="A method proposed in Thesis"/>
+                                <figcaption class="text-center">
+                                    <small class="text-muted">Method to analyse Information System compliancy towards
+                                        GDPR</small></figcaption>
+                            </figure>
+                        </div>
+                        <h4>What does this tool do?</h4>
+                        <p>
+                            This tool is capable of analysing business processes of IS:
+                            <ul>
+                                <li>Parse business process models defined in BPMN 2.0 notation (XML files with .bpmn extension).</li>
+                                <li>Automatically apply extraction rules (3.3 Extraction Rules)</li>
+                                <li>Ask user for additional inputs for extraction rules (3.3 Extraction Rules)</li>
+                                <li>Compare and analyse <a th:href="@{/img/model.jpg}" target="_blank">GDPR meta-model
+                                </a> and as-is compliancy model</li>
+                                <li>Depict as-is compliancy model using <a href="http://plantuml.com/"
+                                                                           target="_blank">PlantUML</a> tool</li>
+                            </ul>
+                            <div class="text-center">
+                                <figure>
+                                    <img th:src="@{/img/tool.png}" alt="Tool concept"/>
+                                    <figcaption class="text-center">
+                                        <small class="text-muted">Main concept of this tool</small></figcaption>
+                                </figure>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="accordion">
+            <div class="card m">
+                <div class="card-header" id="heading">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapse" aria-controls="#collapse"
+                                aria-expanded="true">Create new model to analyse
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapse" class="collapse" aria-labelledby="heading" data-parent="#accordion">
+                    <div class="card-body">
+                        <p>This form creates new model. Model represents analysis of one information system and can
+                            contain several business processes. Note that we are asking some additional information for
+                            each model to determine Controller, Processor and Third Party authorities.</p>
+                        <p>
+                            <a class="btn btn-sm btn-outline-info" data-toggle="collapse" href="#collapseArt" role="button"
+                               aria-expanded="false" aria-controls="collapseArt">
+                                Show relevant GDPR articles
+                            </a>
+                        </p>
+                        <div class="border p-3 collapse" id="collapseArt">
+                            <small class="text-muted">
+                                <h6 class="text-center"><a href="https://gdpr-info.eu/art-4-gdpr/" target="_blank">Art. 4 GDPR</a></h6>
+                                <h6 class="text-center">Definitions</h6>
+                                <ol start="7">
+                                    <li>
+                                        <span class="text-danger">‘controller’</span> means the natural or legal person,
+                                        public authority, agency or other body which, alone or jointly with others,
+                                        <span class="text-danger">determines the purposes and means of the processing
+                                            of personal data</span>; where the purposes and means of such processing
+                                        are determined by Union or Member State law, the controller or the specific
+                                        criteria for its nomination may be provided for by Union or Member State law;
+                                    </li>
+                                    <li>
+                                        <span class="text-danger">‘processor’</span> means a natural or legal person,
+                                        public authority, agency or other body which <span class="text-danger">
+                                        processes personal data on behalf of the controller;</span>
+                                    </li>
+                                </ol>
+                                <ol start="10">
+                                    <li>
+                                        <span class="text-danger">‘third party’</span> means a natural or legal person,
+                                        public authority, agency or body other than the data subject, controller,
+                                        processor and persons <span class="text-danger">who, under the direct authority
+                                        of the controller or processor, are authorised to process personal data;</span>
+                                    </li>
+                                </ol>
+                                <br/>
+                            </small>
+                        </div>
+                        <div class="form-row m">
+                            <div class="form-group col-md-12">
+                                <label for="title">Title</label>
+                                <input type="text" class="form-control" required="required" id="title" placeholder="Name of Model" th:field="*{name}" />
+                                <small class="form-text text-muted">Pick a name for model so later this model could be easily found in list below</small>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-5">
+                                <label for="con">Controller</label>
+                                <input type="text" class="form-control" id="con" placeholder="Name of controller" required="required" th:field="*{controller}" />
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="contype">Controller Authority Type</label>
+                                <select class="form-control" id="contype" th:field="*{contype}">
+                                    <option th:each="ct : ${T(ee.ut.gdpr.proto.domain.enums.AuthorityType).values()}"
+                                            th:value="${ct}"
+                                            th:text="${ct.value}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 align-self-end">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input"
+                                           onchange="controolerChanged()" id="conproc" th:field="*{conproc}" />
+                                    <label class="custom-control-label" for="conproc">Controller fulfils Processor role</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row" id="procRow">
+                            <div class="form-group col-md-5">
+                                <label for="con">Processor or Third Party</label>
+                                <input type="text" class="form-control" id="processor" required="required" placeholder="Name of processor or third party" th:field="*{processor}" />
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="proctype">Processor or Third Party Authority Type</label>
+                                <select class="form-control" id="proctype" th:field="*{proctype}">
+                                    <option th:each="pt : ${T(ee.ut.gdpr.proto.domain.enums.AuthorityType).values()}"
+                                            th:value="${pt}"
+                                            th:text="${pt.value}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3 align-self-end">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="thp" th:field="*{third}" />
+                                    <label class="custom-control-label" for="thp">Processor is Third Party</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="col-sm-12">
+                            <button class="btn btn-success pull-right" role="button" value="submit" type="submit">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="card m">
+        <h5 class="card-header">Previously saved models</h5>
+        <div class="card-body" th:if="${models == null or models.size() &lt; 1}">
+            <p>There are no models created yet. You can create new model with form above (Create new model to analyse).</p>
+        </div>
+        <div class="card-body" th:if="${models != null and models.size() &gt; 0}">
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Model</th>
+                    <th scope="col">Options</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m, s : *{models}">
+                    <th scope="row" th:text="${s.index + 1}"></th>
+                    <td th:text="${m.name}"></td>
+                    <td>
+                        <a class="btn btn-success btn-sm" role="button" th:href="${'/model/' + m.id}"><span>Open</span></a>
+                        <a class="btn btn-danger btn-sm" role="button" th:href="${'/model/remove/' + m.id}"><span>Delete</span></a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+<script>
+    function controolerChanged() {
+        var checked = $('#conproc').prop('checked');
+        if (checked) {
+            $('#processor').removeAttr('required');
+            $('#procRow').hide();
+        } else {
+            $('#processor').attr('required', 'required');
+            $('#procRow').show();
+        }
+    }
+</script>
+</html>
