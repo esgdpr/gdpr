@@ -7,6 +7,7 @@
   spring.datasource.url=jdbc:postgresql://localhost:5432/gdpr<br/>
   spring.datasource.username=postgres<br/>
   spring.datasource.password=postgres<br/>
+  spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect<br/>
   spring.jpa.generate-ddl=true
 
 # RUN:
