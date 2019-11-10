@@ -1,7 +1,7 @@
 package ee.ut.gdpr.proto.service;
 
-import ee.ut.gdpr.proto.domain.*;
 import ee.ut.gdpr.proto.domain.Lane;
+import ee.ut.gdpr.proto.domain.*;
 import ee.ut.gdpr.proto.domain.enums.*;
 import ee.ut.gdpr.proto.repository.*;
 import org.apache.commons.lang3.StringUtils;
@@ -9,9 +9,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.impl.instance.SubProcessImpl;
 import org.camunda.bpm.model.bpmn.impl.instance.TaskImpl;
-import org.camunda.bpm.model.bpmn.instance.*;
 import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.Task;
+import org.camunda.bpm.model.bpmn.instance.*;
 import org.camunda.bpm.model.xml.ModelInstance;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class ParserService {
     private ResourceLoader resourceLoader;
 
     public String parseExample(String modelId) throws IOException {
-        File file = resourceLoader.getResource("classpath:static/examples/user_login_c.bpmn").getFile();
+        File file = resourceLoader.getResource("classpath:static/examples/diagram.bpmn").getFile();
         MultipartFile multipartFile = new MockMultipartFile("User Login", new FileInputStream(file));
         return parseModel(multipartFile, modelId, 1, ProcessType.DEFAULT);
     }
@@ -83,11 +83,17 @@ public class ParserService {
 
     private List<Pool> parsePools(ModelInstance modelInstance, BPMNProcess bpmnProcess, Map<String, String> ids) {
         Collection<Process> list = modelInstance.getModelElementsByType(Process.class);
+        Collection<Participant> participants = modelInstance.getModelElementsByType(Participant.class);
         List<Pool> result = new ArrayList<>();
         if (!CollectionUtils.isEmpty(list)) {
             for (Process pr : list) {
                 Pool pool = new Pool();
-                pool.setName(pr.getName().replace("\n", " "));
+                if (pr.getName() == null) {
+                    Participant participant = participants.stream().filter(o -> o.getProcess().equals(pr)).findFirst().get();
+                    pool.setName(participant.getName().replace("\n", " "));
+                } else {
+                    pool.setName(pr.getName().replace("\n", " "));
+                }
                 pool.setId(UUID.randomUUID().toString());
                 ids.putIfAbsent(pool.getId(), pr.getId());
                 pool.setBpmnProcess(bpmnProcess);
@@ -96,21 +102,37 @@ public class ParserService {
                 Collection<SubProcess> sp = pr.getChildElementsByType(SubProcess.class);
                 List<org.camunda.bpm.model.bpmn.instance.Lane> lanes =
                         pr.getLaneSets().stream().flatMap(o -> o.getLanes().stream()).collect(Collectors.toList());
-                Pair<List<Lane>, List<ee.ut.gdpr.proto.domain.Task>> pair = parseLanes(lanes, pool, ts, sp, ids);
+                Pair<List<Lane>, List<ee.ut.gdpr.proto.domain.Task>> pair = parseLanes(modelInstance, lanes, pool, ts, sp, ids);
                 pool.setLanes(pair.getLeft());
                 parseSequenceFlows(modelInstance, pair.getRight(), ids);
                 result.add(pool);
             }
         }
-        Collection<Participant> participants = modelInstance.getModelElementsByType(Participant.class);
         return poolRepository.save(result);
     }
 
 
-    private Pair<List<Lane>, List<ee.ut.gdpr.proto.domain.Task>> parseLanes(List<org.camunda.bpm.model.bpmn.instance.Lane> lanes, Pool pool,
+    private Pair<List<Lane>, List<ee.ut.gdpr.proto.domain.Task>> parseLanes(ModelInstance modelInstance, List<org.camunda.bpm.model.bpmn.instance.Lane> lanes, Pool pool,
                                                                             Collection<Task> ts, Collection<SubProcess> sp, Map<String, String> ids) {
         List<Lane> result = new ArrayList<>();
         List<ee.ut.gdpr.proto.domain.Task> taskList = new ArrayList<>();
+        if (lanes.isEmpty()) {
+            Lane lane = new Lane();
+            lane.setName(pool.getName() == null ? pool.getName() : pool.getName().replace("\n", " "));
+            lane.setId(UUID.randomUUID().toString());
+            ids.putIfAbsent(lane.getId(), pool.getId());
+            lane.setPool(pool);
+            laneRepository.save(lane);
+            List<ee.ut.gdpr.proto.domain.Task> tasks = parseTasks(modelInstance, ts.stream().collect(Collectors.toList()), lane, ids);
+            List<ee.ut.gdpr.proto.domain.Task> subp = parseTasks(modelInstance, sp.stream().collect(Collectors.toList()), lane, ids);
+            tasks.addAll(subp);
+            lane.setTasks(tasks);
+            if (lane.isCandidateForFilingSystem()) {
+                lane.setType(LaneType.FILING_SYSTEM);
+            }
+            result.add(lane);
+            taskList.addAll(tasks);
+        }
         for (org.camunda.bpm.model.bpmn.instance.Lane l : lanes) {
             List<String> filter = l.getFlowNodeRefs().stream().map(o -> o.getId()).collect(Collectors.toList());
             Lane lane = new Lane();
@@ -119,8 +141,8 @@ public class ParserService {
             ids.putIfAbsent(lane.getId(), l.getId());
             lane.setPool(pool);
             laneRepository.save(lane);
-            List<ee.ut.gdpr.proto.domain.Task> tasks = parseTasks(ts.stream().filter(o -> filter.contains(o.getId())).collect(Collectors.toList()), lane, ids);
-            List<ee.ut.gdpr.proto.domain.Task> subp = parseTasks(sp.stream().filter(o -> filter.contains(o.getId())).collect(Collectors.toList()), lane, ids);
+            List<ee.ut.gdpr.proto.domain.Task> tasks = parseTasks(modelInstance, ts.stream().filter(o -> filter.contains(o.getId())).collect(Collectors.toList()), lane, ids);
+            List<ee.ut.gdpr.proto.domain.Task> subp = parseTasks(modelInstance, sp.stream().filter(o -> filter.contains(o.getId())).collect(Collectors.toList()), lane, ids);
             tasks.addAll(subp);
             lane.setTasks(tasks);
             if (lane.isCandidateForFilingSystem()) {
@@ -133,7 +155,7 @@ public class ParserService {
         return Pair.of(laneRepository.save(result), taskList);
     }
 
-    private <T extends Activity> List<ee.ut.gdpr.proto.domain.Task> parseTasks(List<T> list, Lane lane, Map<String, String> ids) {
+    private <T extends Activity> List<ee.ut.gdpr.proto.domain.Task> parseTasks(ModelInstance modelInstance, List<T> list, Lane lane, Map<String, String> ids) {
         List<ee.ut.gdpr.proto.domain.Task> tasks = new ArrayList<>();
         if (!CollectionUtils.isEmpty(list)) {
             for (T t : list) {
@@ -143,8 +165,8 @@ public class ParserService {
                 task.setName(t.getName().replace("\n", " "));
                 task.setLane(lane);
                 taskRepository.save(task);
-                List<TaskPersonalData> in = collectData(t.getDataInputAssociations(), task, DataFlowDirection.IN);
-                List<TaskPersonalData> out = collectData(t.getDataOutputAssociations(), task, DataFlowDirection.OUT);
+                List<TaskPersonalData> in = collectData(modelInstance, t.getDataInputAssociations(), task, DataFlowDirection.IN);
+                List<TaskPersonalData> out = collectData(modelInstance, t.getDataOutputAssociations(), task, DataFlowDirection.OUT);
                 in.addAll(out);
                 task.setTaskPersonalData(in);
                 task.setType(getTaskType(t.getProperties()));
@@ -157,7 +179,7 @@ public class ParserService {
         return taskRepository.save(tasks);
     }
 
-    private List<TaskPersonalData> collectData(Collection<? extends DataAssociation> list,
+    private List<TaskPersonalData> collectData(ModelInstance modelInstance, Collection<? extends DataAssociation> list,
                                                ee.ut.gdpr.proto.domain.Task task, DataFlowDirection direction) {
 
         List<TaskPersonalData> result = new ArrayList<>();
@@ -166,16 +188,30 @@ public class ParserService {
             List<PersonalData> pds = new ArrayList<>();
             for (DataAssociation da : list) {
                 if (DataFlowDirection.IN == direction) {
-                    for (ItemAwareElement itm : da.getSources()) {
-                        DataObject dataObject = ((DataObjectReference) itm).getDataObject();
-                        String content = dataObject.getName();
-                        pds.addAll(parsePersonalData(content, isCollection || dataObject.isCollection(), task.getLane()));
+                    try {
+                        for (ItemAwareElement itm : da.getSources()) {
+                            DataObject dataObject = ((DataObjectReference) itm).getDataObject();
+                            String content = dataObject.getName() == null ? ((DataObjectReference) itm).getName() : dataObject.getName();
+                            pds.addAll(parsePersonalData(content, isCollection || dataObject.isCollection(), task.getLane()));
+                        }
+                    } catch (ClassCastException e) {
+                        String refId = da.getTextContent();
+                        ModelElementInstance a = modelInstance.getModelElementById(refId);
+                        if (a != null) {
+                            pds.addAll(parsePersonalData(a.getAttributeValue("name"), true, task.getLane()));
+                        }
                     }
                 }
                 if (DataFlowDirection.OUT == direction) {
-                    DataObject dataObject = ((DataObjectReference) da.getTarget()).getDataObject();
-                    String content = dataObject.getName();
-                    pds.addAll(parsePersonalData(content, isCollection || dataObject.isCollection(), task.getLane()));
+                    try {
+                        DataObject dataObject = ((DataObjectReference) da.getTarget()).getDataObject();
+                        String content = dataObject.getName();
+                        pds.addAll(parsePersonalData(content, isCollection || dataObject.isCollection(), task.getLane()));
+                    } catch (ClassCastException e) {
+                        String refId = da.getTextContent();
+                        ModelElementInstance a = modelInstance.getModelElementById(refId);
+                        pds.addAll(parsePersonalData(a.getAttributeValue("name"), true, task.getLane()));
+                    }
                 }
             }
             for (PersonalData pd : pds) {
@@ -193,45 +229,47 @@ public class ParserService {
     private List<PersonalData> parsePersonalData(String content, boolean isCollection, Lane dataSubject) {
         List<PersonalData> personalData = new ArrayList<>();
         String name = content == null ? null : content.replace("\n", "");
-        String[] byObjects = name.split("\\)");
-        for (String obj : byObjects) {
-            DataSubject ds = null;
-            String[] res = obj.split("\\(");
-            String colLabel = res.length > 1 ? res[0].toLowerCase().trim() : null;
-            String[] labels = res[res.length - 1].split(",");
-            for (String label : labels) {
-                label = label.toLowerCase().trim();
-                PersonalData pd = personalDataRepository.findFirstByLabelAndCollectionLabel(label, colLabel);
-                if (pd == null) {
-                    pd = new PersonalData();
-                    pd.setId(UUID.randomUUID().toString());
-                    pd.setLabel(label);
-                    pd.setFromDB(isCollection);
-                    pd.setCollectionLabel(colLabel);
-                    if (!isCollection) {
-                        boolean isDataSubject = StringUtils.isEmpty(colLabel) && !LaneType.FILING_SYSTEM.equals(dataSubject.getType());
-                        ds = dataSubjectRepository.findFirstByName(isDataSubject ? dataSubject.getName() : colLabel);
-                        if (ds == null) {
-                            ds = new DataSubject();
-                            ds.setId(UUID.randomUUID().toString());
-                            ds.setName(isDataSubject ? dataSubject.getName() : colLabel);
-                            if (isDataSubject) {
-                                ds.setPool(dataSubject.getId());
-                                dataSubject.setType(LaneType.DATA_SUBJECT);
-                                laneRepository.save(dataSubject);
+        if (name != null) {
+            String[] byObjects = name.split("\\)");
+            for (String obj : byObjects) {
+                DataSubject ds = null;
+                String[] res = obj.split("\\(");
+                String colLabel = res.length > 1 ? res[0].toLowerCase().trim() : null;
+                String[] labels = res[res.length - 1].split(",");
+                for (String label : labels) {
+                    label = label.toLowerCase().trim();
+                    PersonalData pd = personalDataRepository.findFirstByLabelAndCollectionLabel(label, colLabel);
+                    if (pd == null) {
+                        pd = new PersonalData();
+                        pd.setId(UUID.randomUUID().toString());
+                        pd.setLabel(label);
+                        pd.setFromDB(isCollection);
+                        pd.setCollectionLabel(colLabel);
+                        if (!isCollection) {
+                            boolean isDataSubject = StringUtils.isEmpty(colLabel) && !LaneType.FILING_SYSTEM.equals(dataSubject.getType());
+                            ds = dataSubjectRepository.findFirstByName(isDataSubject ? dataSubject.getName() : colLabel);
+                            if (ds == null) {
+                                ds = new DataSubject();
+                                ds.setId(UUID.randomUUID().toString());
+                                ds.setName(isDataSubject ? dataSubject.getName() : colLabel);
+                                if (isDataSubject) {
+                                    ds.setPool(dataSubject.getId());
+                                    dataSubject.setType(LaneType.DATA_SUBJECT);
+                                    laneRepository.save(dataSubject);
+                                }
+                                ds.setPersonalData(new ArrayList<>());
                             }
-                            ds.setPersonalData(new ArrayList<>());
+                        }
+                        personalDataRepository.save(pd);
+                        if (ds != null) {
+                            ds.getPersonalData().add(pd);
+                            dataSubjectRepository.save(ds);
+                            pd.setDataSubject(ds);
+                            personalDataRepository.save(pd);
                         }
                     }
-                    personalDataRepository.save(pd);
-                    if (ds != null) {
-                        ds.getPersonalData().add(pd);
-                        dataSubjectRepository.save(ds);
-                        pd.setDataSubject(ds);
-                        personalDataRepository.save(pd);
-                    }
+                    personalData.add(pd);
                 }
-                personalData.add(pd);
             }
         }
         return personalData;
