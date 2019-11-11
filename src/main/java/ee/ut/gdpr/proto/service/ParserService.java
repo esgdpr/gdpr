@@ -197,7 +197,7 @@ public class ParserService {
                     } catch (ClassCastException e) {
                         String refId = da.getTextContent();
                         ModelElementInstance a = modelInstance.getModelElementById(refId);
-                        if (a != null) {
+                        if (a != null && a.getAttributeValue("name") != null) {
                             pds.addAll(parsePersonalData(a.getAttributeValue("name"), true, task.getLane()));
                         }
                     }
@@ -210,7 +210,9 @@ public class ParserService {
                     } catch (ClassCastException e) {
                         String refId = da.getTextContent();
                         ModelElementInstance a = modelInstance.getModelElementById(refId);
-                        pds.addAll(parsePersonalData(a.getAttributeValue("name"), true, task.getLane()));
+                        if (a != null && a.getAttributeValue("name") != null) {
+                            pds.addAll(parsePersonalData(a.getAttributeValue("name"), true, task.getLane()));
+                        }
                     }
                 }
             }
